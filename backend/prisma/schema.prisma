@@ -8,8 +8,114 @@ generator client {
 }
 
 model User {
+  id              Int            @id @default(autoincrement())
+  name            String?
+  email           String         @unique
+  role            Role           @default(STUDENT)
+  createdAt       DateTime       @default(now())
+  profile         Profile?
+  applications    Application[]
+  reviewsReceived Review[]       @relation("reviewedUser")
+  reviewsGiven    Review[]       @relation("reviewer")
+  notifications   Notification[]
+  interviews      Interview[]
+}
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  bio    String?
+  skills String?
+  userId Int     @unique
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model Company {
+  id          Int          @id @default(autoincrement())
+  name        String
+  email       String       @unique
+  internships Internship[]
+  reviews     Review[]     @relation("companyReviews")
+}
+
+model Internship {
+  id           Int             @id @default(autoincrement())
+  title        String
+  description  String?
+  companyId    Int
+  company      Company         @relation(fields: [companyId], references: [id])
+  applications Application[]
+  tags         InternshipTag[]
+  interviews   Interview[]
+}
+
+model Application {
+  id           Int        @id @default(autoincrement())
+  status       AppStatus  @default(PENDING)
+  userId       Int
+  internshipId Int
+  createdAt    DateTime   @default(now())
+  user         User       @relation(fields: [userId], references: [id])
+  internship   Internship @relation(fields: [internshipId], references: [id])
+}
+
+model Review {
+  id         Int      @id @default(autoincrement())
+  rating     Int
+  comment    String?
+  reviewerId Int
+  userId     Int
+  companyId  Int?
+  reviewer   User     @relation("reviewer", fields: [reviewerId], references: [id])
+  reviewed   User     @relation("reviewedUser", fields: [userId], references: [id])
+  company    Company? @relation("companyReviews", fields: [companyId], references: [id])
+}
+
+model Notification {
   id        Int      @id @default(autoincrement())
+  userId    Int
+  message   String
+  read      Boolean  @default(false)
   createdAt DateTime @default(now())
-  email     String   @unique
-  name      String?
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+model Interview {
+  id           Int             @id @default(autoincrement())
+  userId       Int
+  internshipId Int
+  scheduledAt  DateTime
+  status       InterviewStatus @default(PENDING)
+  user         User            @relation(fields: [userId], references: [id])
+  internship   Internship      @relation(fields: [internshipId], references: [id])
+}
+
+model Tag {
+  id          Int             @id @default(autoincrement())
+  name        String          @unique
+  internships InternshipTag[]
+}
+
+model InternshipTag {
+  id           Int        @id @default(autoincrement())
+  internshipId Int
+  tagId        Int
+  internship   Internship @relation(fields: [internshipId], references: [id])
+  tag          Tag        @relation(fields: [tagId], references: [id])
+}
+
+enum Role {
+  STUDENT
+  ADMIN
+}
+
+enum AppStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum InterviewStatus {
+  PENDING
+  DONE
+  CANCELLED
 }
