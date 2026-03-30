@@ -46,4 +46,13 @@ router.delete('/:userId', async (req, res) => {
   }
 });
 
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  const user = await prisma.user.findFirst({ where: { email, role: "EMPLOYER" } });
+  if (!user || user.password !== password) {
+    return res.json({ success: false });
+  }
+  res.json({ success: true, user });
+});
+
 export default router;
