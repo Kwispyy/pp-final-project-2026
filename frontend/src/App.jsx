@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-
+import { useState } from "react";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import Vacancies from "./pages/Vacancies";
@@ -8,7 +7,7 @@ import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 
-export default function App() {
+function App() {
   const [user, setUser] = useState(null);
 
   return (
@@ -24,3 +23,5 @@ export default function App() {
     </Router>
   );
 }
+
+export default App;
