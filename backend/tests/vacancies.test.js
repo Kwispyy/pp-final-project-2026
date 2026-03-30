@@ -1,39 +1,76 @@
 import request from 'supertest';
-import express from 'express';
-import vacanciesRouter from '../routes/vacancies.js';
+import { describe, it, beforeEach, afterAll, expect } from '@jest/globals';
+import app from '../app.js';
 import { prisma } from '../lib/prisma.js';
+import { cleanDb } from './setup.js';
 
-const app = express();
-app.use(express.json());
-app.use('/vacancies', vacanciesRouter);
+describe('Vacancies CRUD', () => {
+  let employerId;
 
-describe('Vacancies API', () => {
-  let employerId, vacancyId;
+  beforeEach(async () => {
+    await cleanDb();
 
-  beforeAll(async () => {
-    const user = await prisma.user.create({ data: { email: 'emp@test.com', password: '123', role: 'employer' } });
-    const employer = await prisma.employerProfile.create({ data: { userId: user.id, companyName: 'TestCompany' } });
+    const user = await prisma.user.create({
+      data: {
+        email: `emp_${Date.now()}@test.com`,
+        password: '123',
+        role: 'EMPLOYER'
+      }
+    });
+
+    const employer = await prisma.employerProfile.create({
+      data: {
+        userId: user.id,
+        companyName: 'TestCo'
+      }
+    });
+
     employerId = employer.id;
   });
 
-  it('Создание вакансии', async () => {
-    const res = await request(app)
-      .post('/vacancies')
-      .send({ title: 'Junior Dev', description: 'Test description', employerId });
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    vacancyId = res.body.vacancy.id;
+  afterAll(async () => {
+    await prisma.$disconnect();
   });
 
-  it('Получение всех вакансий', async () => {
+  it('Добавление вакансии', async () => {
+    const res = await request(app)
+      .post('/vacancies')
+      .send({
+        title: 'Backend Dev',
+        description: 'Node.js dev',
+        employerId
+      });
+
+    expect(res.status).toBe(201);
+  });
+
+  it('Просмотр вакансий', async () => {
+    const create = await request(app)
+      .post('/vacancies')
+      .send({
+        title: 'Backend Dev',
+        description: 'Node.js dev',
+        employerId
+      });
+
     const res = await request(app).get('/vacancies');
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
+
+    expect(res.status).toBe(200);
+    expect(res.body.vacancies.some(v => v.id === create.body.id)).toBe(true);
   });
 
   it('Удаление вакансии', async () => {
-    const res = await request(app).delete(`/vacancies/${vacancyId}`);
-    expect(res.statusCode).toBe(200);
+    const create = await request(app)
+      .post('/vacancies')
+      .send({
+        title: 'Backend Dev',
+        description: 'Node.js dev',
+        employerId
+      });
+
+    const res = await request(app).delete(`/vacancies/${create.body.id}`);
+
+    expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
   });
 });

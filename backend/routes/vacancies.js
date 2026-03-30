@@ -1,52 +1,57 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
 
-const vacanciesRouter = express.Router();
+const router = express.Router();
 
-// Создать вакансию
-vacanciesRouter.post('/', async (req, res) => {
-  const { title, description, employerId, skillIds = [] } = req.body;
+// CREATE
+router.post('/', async (req, res) => {
   try {
+    const { title, description, employerId } = req.body;
+
     const vacancy = await prisma.vacancy.create({
       data: {
         title,
         description,
-        employerId,
-        skills: {
-          create: skillIds.map(skillId => ({ skillId }))
-        }
-      },
-      include: { skills: true }
+        employerId
+      }
     });
-    res.json({ success: true, vacancy });
+
+    res.status(201).json(vacancy);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Получить все вакансии
-vacanciesRouter.get('/', async (req, res) => {
+// GET ALL
+router.get('/', async (req, res) => {
   try {
-    const vacancies = await prisma.vacancy.findMany({
-      include: { employer: true, skills: { include: { skill: true } }, applications: true }
+    const vacancies = await prisma.vacancy.findMany();
+
+    res.status(200).json({ vacancies });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// DELETE
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    await prisma.application.deleteMany({
+      where: { vacancyId: id }
     });
-    res.json({ success: true, vacancies });
+
+    await prisma.vacancy.delete({
+      where: { id }
+    });
+
+    res.status(200).json({ success: true });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Удалить вакансию
-vacanciesRouter.delete('/:id', async (req, res) => {
-  const { id } = req.params;
-  try {
-    await prisma.application.deleteMany({ where: { vacancyId: id } });
-    await prisma.vacancySkill.deleteMany({ where: { vacancyId: id } });
-    await prisma.vacancy.delete({ where: { id } });
-    res.json({ success: true, message: 'Вакансия удалена' });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-export default vacanciesRouter;
+export default router;

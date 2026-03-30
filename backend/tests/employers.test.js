@@ -1,34 +1,60 @@
 import request from 'supertest';
-import express from 'express';
-import employersRouter from '../routes/employers.js';
+import { describe, it, beforeEach, afterAll, expect } from '@jest/globals';
+import app from '../app.js';
 import { prisma } from '../lib/prisma.js';
+import { cleanDb } from './setup.js';
 
-const app = express();
-app.use(express.json());
-app.use('/employers', employersRouter);
-
-describe('Employers API', () => {
+describe('Employers CRUD', () => {
   let userId;
 
-  it('Создание работодателя', async () => {
-    const resUser = await prisma.user.create({ data: { email: 'emp@test.com', password: '12345', role: 'employer' } });
-    userId = resUser.id;
-    const res = await request(app)
-      .post('/employers')
-      .send({ userId, companyName: 'TestCompany' });
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
+  beforeEach(async () => {
+    await cleanDb();
   });
 
-  it('Получение всех работодателей', async () => {
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('Добавление работодателя', async () => {
+    const res = await request(app)
+      .post('/employers')
+      .send({
+        email: `emp_${Date.now()}@test.com`,
+        password: '123',
+        companyName: 'TestCo'
+      });
+
+    expect(res.status).toBe(201);
+    userId = res.body.user.id;
+  });
+
+  it('Просмотр работодателей', async () => {
+    const create = await request(app)
+      .post('/employers')
+      .send({
+        email: `emp_${Date.now()}@test.com`,
+        password: '123',
+        companyName: 'TestCo'
+      });
+
     const res = await request(app).get('/employers');
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
+
+    expect(res.status).toBe(200);
+    expect(res.body.employers.some(e => e.user.id === create.body.user.id)).toBe(true);
   });
 
   it('Удаление работодателя', async () => {
-    const res = await request(app).delete(`/employers/${userId}`);
-    expect(res.statusCode).toBe(200);
+    const create = await request(app)
+      .post('/employers')
+      .send({
+        email: `emp_${Date.now()}@test.com`,
+        password: '123',
+        companyName: 'TestCo'
+      });
+
+    const res = await request(app).delete(`/employers/${create.body.user.id}`);
+
+    expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
   });
 });

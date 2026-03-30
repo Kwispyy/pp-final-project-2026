@@ -3,57 +3,47 @@ import { prisma } from '../lib/prisma.js';
 
 const router = express.Router();
 
-// Создать студента (User + StudentProfile)
+// Создание студента
 router.post('/', async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await prisma.user.create({
       data: { email, password, role: "STUDENT" }
     });
-
     const studentProfile = await prisma.studentProfile.create({
       data: { userId: user.id }
     });
-
-    res.json({ success: true, user, studentProfile });
+    res.status(201).json({ success: true, user, studentProfile });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Получить всех студентов
+// Получение всех студентов
 router.get('/', async (req, res) => {
   try {
-    const students = await prisma.studentProfile.findMany({
-      include: { user: true }
-    });
-    res.json({ success: true, students });
+    const students = await prisma.studentProfile.findMany({ include: { user: true } });
+    res.status(200).json({ success: true, students });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
+// Удаление студента
 router.delete('/:userId', async (req, res) => {
   const { userId } = req.params;
-
   try {
-    // Сначала удаляем связанные данные: резюме, отзывы, приложения
-    await prisma.application.deleteMany({ where: { userId } });
-    await prisma.resume.deleteMany({
-      where: { studentId: (await prisma.studentProfile.findUnique({ where: { userId } }))?.id }
-    });
-    await prisma.review.deleteMany({
-      where: { studentId: (await prisma.studentProfile.findUnique({ where: { userId } }))?.id }
-    });
-    await prisma.studentProfile.delete({ where: { userId } });
+    const student = await prisma.studentProfile.findUnique({ where: { userId } });
+    if (!student) return res.status(404).json({ success: false, error: 'Student not found' });
 
-    // Потом удаляем самого пользователя
+    await prisma.application.deleteMany({ where: { userId } });
+    await prisma.resume.deleteMany({ where: { studentId: student.id } });
+    await prisma.review.deleteMany({ where: { studentId: student.id } });
+    await prisma.studentProfile.delete({ where: { userId } });
     await prisma.user.delete({ where: { id: userId } });
 
-    res.json({ success: true, message: 'Студент удалён полностью' });
+    res.status(200).json({ success: true, message: 'Student deleted' });
   } catch (err) {
-    console.error(err);
     res.status(500).json({ success: false, error: err.message });
   }
 });

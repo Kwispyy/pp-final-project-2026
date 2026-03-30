@@ -1,35 +1,54 @@
 import request from 'supertest';
-import express from 'express';
+import { describe, it, beforeEach, afterAll, expect } from '@jest/globals';
+import app from '../app.js';
 import { prisma } from '../lib/prisma.js';
-import studentsRouter from '../routes/students.js';
+import { cleanDb } from './setup.js';
 
-const app = express();
-app.use(express.json());
-app.use('/students', studentsRouter);
-
-describe('Students API', () => {
-  let userId;
-
-  it('Создание студента', async () => {
-    const res = await request(app)
-      .post('/students')
-      .send({ email: 'test@student.com', password: '12345' });
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    userId = res.body.student.user.id;
+describe('Students CRUD', () => {
+  beforeEach(async () => {
+    await cleanDb();
   });
 
-  it('Получение всех студентов', async () => {
+  afterAll(async () => {
+    await prisma.$disconnect();
+  });
+
+  it('Добавление студента', async () => {
+    const res = await request(app)
+      .post('/students')
+      .send({
+        email: `student_${Date.now()}@test.com`,
+        password: '123'
+      });
+
+    expect(res.status).toBe(201);
+  });
+
+  it('Просмотр студентов', async () => {
+    const create = await request(app)
+      .post('/students')
+      .send({
+        email: `student_${Date.now()}@test.com`,
+        password: '123'
+      });
+
     const res = await request(app).get('/students');
-    expect(res.statusCode).toBe(200);
-    expect(res.body.success).toBe(true);
-    expect(res.body.students.length).toBeGreaterThan(0);
+
+    expect(res.status).toBe(200);
+    expect(res.body.students.some(s => s.user.id === create.body.user.id)).toBe(true);
   });
 
   it('Удаление студента', async () => {
-    const res = await request(app).delete(`/students/${userId}`);
-    expect(res.statusCode).toBe(200);
+    const create = await request(app)
+      .post('/students')
+      .send({
+        email: `student_${Date.now()}@test.com`,
+        password: '123'
+      });
+
+    const res = await request(app).delete(`/students/${create.body.user.id}`);
+
+    expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
   });
-
 });

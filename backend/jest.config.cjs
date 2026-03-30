@@ -1,4 +1,6 @@
 module.exports = {
-  testEnvironment: 'node',      // для Node.js API
-  transform: {},                // отключаем Babel/TS, используем нативный ESM
+  transform: {
+    "^.+\\.js$": "babel-jest"
+  },
+  testEnvironment: "node"            // отключаем Babel/TS, используем нативный ESM
 };

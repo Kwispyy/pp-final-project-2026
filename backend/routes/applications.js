@@ -1,42 +1,69 @@
 import express from 'express';
 import { prisma } from '../lib/prisma.js';
 
-const applicationsRouter = express.Router();
+const router = express.Router();
 
-// Подать заявку
-applicationsRouter.post('/', async (req, res) => {
-  const { userId, vacancyId } = req.body;
+// CREATE
+router.post('/', async (req, res) => {
   try {
+    const { userId, vacancyId, status } = req.body;
+
     const application = await prisma.application.create({
-      data: { userId, vacancyId, status: 'PENDING' }
+      data: {
+        userId,
+        vacancyId,
+        status
+      }
     });
-    res.json({ success: true, application });
+
+    res.status(201).json(application);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    console.error(err);
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Получить все заявки
-applicationsRouter.get('/', async (req, res) => {
+// GET ALL
+router.get('/', async (req, res) => {
   try {
-    const applications = await prisma.application.findMany({
-      include: { user: true, vacancy: true }
+    const applications = await prisma.application.findMany();
+
+    res.status(200).json({ applications });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// UPDATE
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const application = await prisma.application.update({
+      where: { id },
+      data: { status }
     });
-    res.json({ success: true, applications });
+
+    res.status(200).json(application);
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-// Удалить заявку
-applicationsRouter.delete('/:id', async (req, res) => {
-  const { id } = req.params;
+// DELETE
+router.delete('/:id', async (req, res) => {
   try {
-    await prisma.application.delete({ where: { id } });
-    res.json({ success: true, message: 'Заявка удалена' });
+    const { id } = req.params;
+
+    await prisma.application.delete({
+      where: { id }
+    });
+
+    res.status(200).json({ success: true });
   } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
-export default applicationsRouter;
+export default router;
