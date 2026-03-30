@@ -1,0 +1,41 @@
+body {
+  background-color: #f8f9fa;
+  font-family: Arial, sans-serif;
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #343a40;
+}
+
+.loading {
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #555;
+}
+
+.vacancy-card {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.vacancy-card .card-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.vacancy-card .btn-primary {
+  align-self: flex-start;
+  margin-top: 10px;
+  background-color: #007bff;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.vacancy-card .btn-primary:hover {
+  background-color: #0056b3;
+}
+
+.alert {
+  margin: 20px 0;
+}
