@@ -21,51 +21,33 @@ export default function Register({ setUser }) {
       navigate("/profile");
     } catch (err) {
       console.error(err);
-      alert("Registration failed");
+      alert("Ошибка регистрации");
     }
   };
 
   return (
-    <div className="container mt-4">
-      <h2>Register</h2>
+    <div className="container mt-5" style={{ maxWidth: "400px" }}>
+      <h2 className="mb-4 text-center">Регистрация</h2>
       <form onSubmit={handleRegister}>
         <div className="mb-3">
           <label>Email:</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
 
         <div className="mb-3">
-          <label>Password:</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <label>Пароль:</label>
+          <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
 
         <div className="mb-3">
-          <label>Role:</label>
-          <select
-            className="form-select"
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-          >
-            <option value="STUDENT">Student</option>
-            <option value="EMPLOYER">Employer</option>
+          <label>Я хочу зарегистрироваться как:</label>
+          <select className="form-select" value={role} onChange={(e) => setRole(e.target.value)}>
+            <option value="STUDENT">Студент</option>
+            <option value="EMPLOYER">Работодатель</option>
           </select>
         </div>
 
-        <button type="submit" className="btn btn-primary">
-          Register
-        </button>
+        <button type="submit" className="btn btn-primary w-100">Зарегистрироваться</button>
       </form>
     </div>
   );

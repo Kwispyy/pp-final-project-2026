@@ -1,13 +1,14 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from "react";
-import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
-import Vacancies from "./pages/Vacancies";
-import Profile from "./pages/Profile";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-function App() {
+import Navbar from "./components/Navbar.jsx";
+import Home from "./pages/Home.jsx";
+import Vacancies from "./pages/Vacancies.jsx";
+import Profile from "./pages/Profile.jsx";
+import Register from "./pages/Register.jsx";
+import Login from "./pages/Login.jsx";
+
+export default function App() {
   const [user, setUser] = useState(null);
 
   return (
@@ -17,11 +18,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/vacancies" element={<Vacancies user={user} />} />
         <Route path="/profile" element={<Profile user={user} />} />
-        <Route path="/login" element={<Login setUser={setUser} />} />
         <Route path="/register" element={<Register setUser={setUser} />} />
+        <Route path="/login" element={<Login setUser={setUser} />} />
       </Routes>
     </Router>
   );
 }
-
-export default App;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 
 export default function Profile({ user }) {
@@ -6,65 +6,74 @@ export default function Profile({ user }) {
   const [vacancies, setVacancies] = useState([]);
 
   useEffect(() => {
-    if (!user) return;
-
-    const fetchData = async () => {
-      try {
-        if (user.role === "STUDENT") {
+    const fetchApplications = async () => {
+      if (user?.role === "STUDENT") {
+        try {
           const res = await axios.get("http://localhost:3000/applications");
-          const myApps = res.data.applications.filter((app) => app.userId === user.id);
+          const myApps = res.data.applications.filter(app => app.userId === user.id);
           setApplications(myApps);
-        } else if (user.role === "EMPLOYER") {
-          const res = await axios.get("http://localhost:3000/vacancies");
-          const myVacancies = res.data.vacancies.filter((v) => v.employerId === user.id);
-          setVacancies(myVacancies);
+        } catch (err) {
+          console.error(err);
         }
-      } catch (err) {
-        console.error(err);
       }
     };
 
-    fetchData();
+    const fetchVacancies = async () => {
+      if (user?.role === "EMPLOYER") {
+        try {
+          const res = await axios.get("http://localhost:3000/vacancies");
+          const myVacancies = res.data.vacancies.filter(v => v.employerId === user.id);
+          setVacancies(myVacancies);
+        } catch (err) {
+          console.error(err);
+        }
+      }
+    };
+
+    fetchApplications();
+    fetchVacancies();
   }, [user]);
 
-  if (!user)
-    return <div className="container mt-4">Please log in to see your profile</div>;
+  if (!user) return <div className="container mt-4 text-center">Авторизуйтесь чтобы увидеть профиль</div>;
 
   return (
     <div className="container mt-4">
-      <h2>Profile</h2>
-      <div className="card mb-3">
-        <div className="card-body">
-          <h5 className="card-title">{user.email}</h5>
-          <p className="card-text">Role: {user.role}</p>
-        </div>
-      </div>
+      <h2 className="mb-4 text-center">Личный кабинет</h2>
+      <p><strong>Email:</strong> {user.email}</p>
+      <p><strong>Роль:</strong> {user.role}</p>
 
       {user.role === "STUDENT" && (
         <>
-          <h4>My Applications</h4>
-          {applications.map((app) => (
-            <div className="card mb-2" key={app.id}>
-              <div className="card-body">
-                <p className="card-text">Vacancy ID: {app.vacancyId}</p>
-                <p className="card-text">Status: {app.status}</p>
-              </div>
-            </div>
-          ))}
+          <h4 className="mt-4">Мои отклики</h4>
+          {applications.length === 0 ? (
+            <p>Вы ещё не откликались на вакансии</p>
+          ) : (
+            <ul className="list-group">
+              {applications.map(app => (
+                <li key={app.id} className="list-group-item d-flex justify-content-between align-items-center">
+                  Вакансия ID: {app.vacancyId}
+                  <span className="badge bg-primary rounded-pill">{app.status}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </>
       )}
 
       {user.role === "EMPLOYER" && (
         <>
-          <h4>My Vacancies</h4>
-          {vacancies.map((vac) => (
-            <div className="card mb-2" key={vac.id}>
-              <div className="card-body">
-                <h5 className="card-title">{vac.title}</h5>
-                <p className="card-text">{vac.description}</p>
-              </div>
-            </div>
-          ))}
+          <h4 className="mt-4">Мои вакансии</h4>
+          {vacancies.length === 0 ? (
+            <p>Вы ещё не добавили вакансии</p>
+          ) : (
+            <ul className="list-group">
+              {vacancies.map(v => (
+                <li key={v.id} className="list-group-item">
+                  <strong>{v.title}</strong>: {v.description}
+                </li>
+              ))}
+            </ul>
+          )}
         </>
       )}
     </div>

@@ -9,9 +9,9 @@ export default function Navbar({ user, setUser }) {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
       <div className="container">
-        <Link className="navbar-brand" to="/">JobFinder</Link>
+        <Link className="navbar-brand fw-bold" to="/">JobFinder</Link>
         <div className="collapse navbar-collapse">
           <ul className="navbar-nav ms-auto">
             <li className="nav-item">
@@ -33,7 +33,7 @@ export default function Navbar({ user, setUser }) {
                   <Link className="nav-link" to="/profile">Личный кабинет</Link>
                 </li>
                 <li className="nav-item">
-                  <button className="btn btn-sm btn-outline-light ms-2" onClick={handleLogout}>Выйти</button>
+                  <button className="btn btn-outline-light btn-sm ms-2" onClick={handleLogout}>Выйти</button>
                 </li>
               </>
             )}

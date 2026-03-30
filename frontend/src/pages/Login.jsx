@@ -10,13 +10,11 @@ export default function Login({ setUser }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     try {
-      // Попытка логина как студент
       let res = await axios.post("http://localhost:3000/students/login", { email, password });
       if (!res.data.success) {
-        // Если не студент — пробуем как работодатель
         res = await axios.post("http://localhost:3000/employers/login", { email, password });
         if (!res.data.success) {
-          alert("Invalid email or password");
+          alert("Неверный email или пароль");
           return;
         }
       }
@@ -24,39 +22,25 @@ export default function Login({ setUser }) {
       navigate("/profile");
     } catch (err) {
       console.error(err);
-      alert("Login failed");
+      alert("Ошибка входа");
     }
   };
 
   return (
-    <div className="container mt-4">
-      <h2>Login</h2>
+    <div className="container mt-5" style={{ maxWidth: "400px" }}>
+      <h2 className="mb-4 text-center">Вход</h2>
       <form onSubmit={handleLogin}>
         <div className="mb-3">
           <label>Email:</label>
-          <input
-            type="email"
-            className="form-control"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
+          <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} required />
         </div>
 
         <div className="mb-3">
-          <label>Password:</label>
-          <input
-            type="password"
-            className="form-control"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+          <label>Пароль:</label>
+          <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </div>
 
-        <button type="submit" className="btn btn-primary">
-          Login
-        </button>
+        <button type="submit" className="btn btn-primary w-100">Войти</button>
       </form>
     </div>
   );
