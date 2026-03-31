@@ -14,75 +14,60 @@ app.use(cors({
   origin: "http://localhost:5173",
   credentials: true
 }));
+
 app.use(express.json());
 
+// ==================== SWAGGER (статический вариант) ====================
 const swaggerDocument = {
   openapi: "3.0.0",
   info: {
-    title: "Job Finder API",
+    title: "CampusJobs API",
     version: "1.0.0",
+    description: "API для платформы поиска стажировок и временной работы в УрФУ",
   },
   servers: [
-    {
-      url: "http://localhost:3000",
-    },
+    { url: "http://localhost:3000" }
   ],
   paths: {
+    "/register": {
+      post: { summary: "Регистрация пользователя (студент или работодатель)" }
+    },
+    "/login": {
+      post: { summary: "Авторизация пользователя" }
+    },
     "/vacancies": {
-      get: {
-        summary: "Получить вакансии",
-        responses: {
-          200: { description: "OK" },
-        },
-      },
-      post: {
-        summary: "Создать вакансию",
-        responses: {
-          201: { description: "Created" },
-        },
-      },
+      get: { summary: "Получить все вакансии" },
+      post: { summary: "Создать новую вакансию (только работодатель)" }
+    },
+    "/vacancies/{id}": {
+      delete: { summary: "Удалить вакансию" }
     },
     "/applications": {
-      get: {
-        summary: "Получить отклики",
-        responses: {
-          200: { description: "OK" },
-        },
-      },
-      post: {
-        summary: "Создать отклик",
-        responses: {
-          201: { description: "Created" },
-        },
-      },
+      get: { summary: "Получить все отклики" },
+      post: { summary: "Создать отклик на вакансию" }
+    },
+    "/applications/{id}": {
+      put: { summary: "Обновить статус отклика" },
+      delete: { summary: "Удалить (отменить) отклик" }
     },
     "/students": {
-      get: {
-        summary: "Получить студентов",
-        responses: {
-          200: { description: "OK" },
-        },
-      },
+      get: { summary: "Получить всех студентов" }
     },
     "/employers": {
-      get: {
-        summary: "Получить работодателей",
-        responses: {
-          200: { description: "OK" },
-        },
-      },
-    },
-  },
+      get: { summary: "Получить всех работодателей" }
+    }
+  }
 };
 
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+// =====================================================================
 
-app.get('/', (req, res) => res.send('API is running'));
+app.get('/', (req, res) => res.send('CampusJobs API is running'));
 
+app.use("/", authRouter);
 app.use('/students', studentsRouter);
 app.use('/employers', employersRouter);
 app.use('/vacancies', vacanciesRouter);
 app.use('/applications', applicationsRouter);
-app.use("/", authRouter);
 
 export default app;

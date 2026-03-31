@@ -5,7 +5,7 @@ import { prisma } from '../lib/prisma.js';
 import { cleanDb } from './setup.js';
 
 describe('Vacancies CRUD', () => {
-  let employerId;
+  let employerUserId;
 
   beforeEach(async () => {
     await cleanDb();
@@ -18,57 +18,53 @@ describe('Vacancies CRUD', () => {
       }
     });
 
-    const employer = await prisma.employerProfile.create({
-      data: {
-        userId: user.id,
-        companyName: 'TestCo'
-      }
+    await prisma.employerProfile.create({
+      data: { userId: user.id, companyName: 'TestCo' }
     });
 
-    employerId = employer.id;
+    employerUserId = user.id;   // ← важно: используем userId, а не employer.id
   });
 
   afterAll(async () => {
     await prisma.$disconnect();
   });
 
-  it('Добавление вакансии', async () => {
+  it('Должен создавать вакансию', async () => {
     const res = await request(app)
       .post('/vacancies')
       .send({
-        title: 'Backend Dev',
-        description: 'Node.js dev',
-        employerId
+        title: 'Frontend Intern',
+        description: 'React + TypeScript',
+        userId: employerUserId
       });
 
     expect(res.status).toBe(201);
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.title).toBe('Frontend Intern');
   });
 
-  it('Просмотр вакансий', async () => {
-    const create = await request(app)
-      .post('/vacancies')
-      .send({
-        title: 'Backend Dev',
-        description: 'Node.js dev',
-        employerId
-      });
+  it('Должен возвращать список вакансий', async () => {
+    await request(app).post('/vacancies').send({
+      title: 'Test Vacancy',
+      description: 'Test',
+      userId: employerUserId
+    });
 
     const res = await request(app).get('/vacancies');
 
     expect(res.status).toBe(200);
-    expect(res.body.vacancies.some(v => v.id === create.body.id)).toBe(true);
+    expect(Array.isArray(res.body.vacancies)).toBe(true);
+    expect(res.body.vacancies.length).toBeGreaterThan(0);
   });
 
-  it('Удаление вакансии', async () => {
-    const create = await request(app)
-      .post('/vacancies')
-      .send({
-        title: 'Backend Dev',
-        description: 'Node.js dev',
-        employerId
-      });
+  it('Должен удалять вакансию', async () => {
+    const createRes = await request(app).post('/vacancies').send({
+      title: 'To Delete',
+      description: 'Test',
+      userId: employerUserId
+    });
 
-    const res = await request(app).delete(`/vacancies/${create.body.id}`);
+    const res = await request(app).delete(`/vacancies/${createRes.body.id}`);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);

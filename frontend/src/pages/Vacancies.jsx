@@ -1,77 +1,130 @@
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function Vacancies({ user }) {
   const [vacancies, setVacancies] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchVacancies = async () => {
-      try {
-        const res = await axios.get("http://localhost:3000/vacancies");
-        setVacancies(res.data.vacancies);
-      } catch (err) {
-        console.error(err);
-      }
-    };
+    axios.get("http://localhost:3000/vacancies")
+      .then(res => setVacancies(res.data.vacancies || []));
 
-    const fetchApplications = async () => {
-      if (user?.role === "STUDENT") {
-        try {
-          const res = await axios.get("http://localhost:3000/applications");
-          setApplications(res.data.applications);
-        } catch (err) {
-          console.error(err);
-        }
-      }
-    };
-
-    fetchVacancies();
-    fetchApplications();
+    if (user?.role === "STUDENT") {
+      axios.get("http://localhost:3000/applications")
+        .then(res => {
+          setApplications(res.data.applications?.filter(a => a.userId === user.id) || []);
+        });
+    }
   }, [user]);
 
+  const hasApplied = (vacancyId) => applications.some(a => a.vacancyId === vacancyId);
+
   const handleApply = async (vacancyId) => {
+    if (!user) return alert("Войдите в систему");
     try {
-      await axios.post("http://localhost:3000/applications", {
-        userId: user.id,
-        vacancyId,
-        status: "Подана"
+      await axios.post("http://localhost:3000/applications", { 
+        userId: user.id, 
+        vacancyId 
       });
-      setApplications([...applications, { userId: user.id, vacancyId, status: "Подана" }]);
-      alert("Отклик успешно отправлен");
+      alert("Отклик отправлен!");
+      window.location.reload(); // простой рефреш для демо
     } catch (err) {
-      console.error(err);
-      alert("Ошибка при отправке отклика");
+      alert(err.response?.data?.error || "Ошибка при отклике");
     }
   };
 
-  const hasApplied = (vacancyId) => {
-    return applications.some(app => app.vacancyId === vacancyId && app.userId === user?.id);
+  const handleCreate = async () => {
+    if (!title.trim() || !description.trim()) {
+      return alert("Заполните название и описание вакансии");
+    }
+    if (user?.role !== "EMPLOYER") {
+      return alert("Только работодатель может создавать вакансии");
+    }
+
+    setLoading(true);
+    try {
+      await axios.post("http://localhost:3000/vacancies", {
+        title: title.trim(),
+        description: description.trim(),
+        userId: user.id   // ← это обязательно должно быть
+      });
+      alert("Вакансия опубликована!");
+      setTitle("");
+      setDescription("");
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.error || "Ошибка при создании вакансии");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="container mt-5">
-      <h2 className="mb-4 text-center">Вакансии</h2>
+      {/* Форма создания вакансии для работодателя */}
+      {user?.role === "EMPLOYER" && (
+        <div className="card mb-5">
+          <div className="card-body">
+            <h4>Создать новую вакансию</h4>
+            <input 
+              className="form-control mb-2" 
+              placeholder="Название вакансии" 
+              value={title} 
+              onChange={e => setTitle(e.target.value)} 
+            />
+            <textarea 
+              className="form-control mb-3" 
+              rows="3" 
+              placeholder="Описание вакансии" 
+              value={description} 
+              onChange={e => setDescription(e.target.value)} 
+            />
+            <button 
+              className="btn btn-success w-100" 
+              onClick={handleCreate}
+              disabled={loading}
+            >
+              {loading ? "Публикуем..." : "Опубликовать вакансию"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      <h2 className="mb-4">Все вакансии в кампусе</h2>
       <div className="row">
-        {vacancies.map(v => (
-          <div key={v.id} className="col-md-6 col-lg-4 mb-4">
-            <div className="card h-100 shadow-sm border-0">
-              <div className="card-body d-flex flex-column">
-                <h5 className="card-title">{v.title}</h5>
-                <p className="card-text flex-grow-1">{v.description}</p>
-                {user?.role === "STUDENT" && (
-                  <button
-                    className={`btn ${hasApplied(v.id) ? "btn-secondary" : "btn-primary"} mt-2`}
-                    disabled={hasApplied(v.id)}
-                    onClick={() => handleApply(v.id)}
-                  >
-                    {hasApplied(v.id) ? "Вы уже откликнулись" : "Откликнуться"}
-                  </button>
-                )}
+        {vacancies.length === 0 ? (
+          <p>Вакансий пока нет</p>
+        ) : (
+          vacancies.map(v => (
+            <div key={v.id} className="col-12 col-md-6 col-lg-4 mb-4">
+              <div className="card h-100">
+                <div className="card-body">
+                  <h5 className="card-title">{v.title}</h5>
+                  <p className="card-text text-muted">{v.description}</p>
+                  <p className="text-primary">
+                    <strong>{v.employer?.companyName || "Неизвестная компания"}</strong>
+                  </p>
+
+                  {user?.role === "STUDENT" && (
+                    <button
+                      className={`btn w-100 ${hasApplied(v.id) ? "btn-secondary" : "btn-primary"}`}
+                      onClick={() => hasApplied(v.id) 
+                        ? alert("Вы уже откликнулись на эту вакансию") 
+                        : handleApply(v.id)
+                      }
+                    >
+                      {hasApplied(v.id) ? "Отклик отправлен ✓" : "Откликнуться"}
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

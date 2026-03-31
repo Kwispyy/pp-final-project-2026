@@ -13,40 +13,56 @@ describe('Students CRUD', () => {
     await prisma.$disconnect();
   });
 
-  it('Добавление студента', async () => {
+  it('Должен создавать студента через /students', async () => {
+    const email = `student_${Date.now()}@test.com`;
+
     const res = await request(app)
       .post('/students')
       .send({
-        email: `student_${Date.now()}@test.com`,
+        email: email,
         password: '123'
       });
 
     expect(res.status).toBe(201);
+    expect(res.body.success).toBe(true);
+    expect(res.body.user).toHaveProperty('id');
   });
 
-  it('Просмотр студентов', async () => {
-    const create = await request(app)
-      .post('/students')
-      .send({
-        email: `student_${Date.now()}@test.com`,
-        password: '123'
-      });
+  it('Должен возвращать список всех студентов', async () => {
+    const email = `student_${Date.now()}@test.com`;
+
+    // Создаём студента
+    await request(app).post('/students').send({
+      email: email,
+      password: '123'
+    });
 
     const res = await request(app).get('/students');
 
     expect(res.status).toBe(200);
-    expect(res.body.students.some(s => s.user.id === create.body.user.id)).toBe(true);
+    expect(Array.isArray(res.body.students)).toBe(true);
+    expect(res.body.students.length).toBeGreaterThan(0);
+
+    // Проверяем, что студент появился в списке
+    const found = res.body.students.some(s => 
+      s.user && s.user.email === email
+    );
+    expect(found).toBe(true);
   });
 
-  it('Удаление студента', async () => {
-    const create = await request(app)
-      .post('/students')
-      .send({
-        email: `student_${Date.now()}@test.com`,
-        password: '123'
-      });
+  it('Должен удалять студента', async () => {
+    const email = `student_${Date.now()}@test.com`;
 
-    const res = await request(app).delete(`/students/${create.body.user.id}`);
+    // Создаём студента
+    const createRes = await request(app).post('/students').send({
+      email: email,
+      password: '123'
+    });
+
+    const userId = createRes.body.user.id;
+
+    // Удаляем
+    const res = await request(app).delete(`/students/${userId}`);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);

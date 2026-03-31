@@ -10,7 +10,8 @@
     "test:students": "jest tests/students.test.js --runInBand",
     "test:employers": "jest tests/employers.test.js --runInBand",
     "test:vacancies": "jest tests/vacancies.test.js --runInBand",
-    "test:applications": "jest tests/applications.test.js --runInBand"
+    "test:applications": "jest tests/applications.test.js --runInBand",
+    "db:clean": "node -e \"import('./tests/setup.js').then(m => m.cleanDb().then(() => console.log('✅ База данных успешно очищена'))).catch(console.error);\""
   },
   "keywords": [],
   "author": "",

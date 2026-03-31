@@ -5,8 +5,6 @@ import { prisma } from '../lib/prisma.js';
 import { cleanDb } from './setup.js';
 
 describe('Employers CRUD', () => {
-  let userId;
-
   beforeEach(async () => {
     await cleanDb();
   });
@@ -15,44 +13,66 @@ describe('Employers CRUD', () => {
     await prisma.$disconnect();
   });
 
-  it('Добавление работодателя', async () => {
+  it('Должен создавать работодателя через /employers', async () => {
+    const email = `emp_${Date.now()}@test.com`;
+
     const res = await request(app)
       .post('/employers')
       .send({
-        email: `emp_${Date.now()}@test.com`,
+        email: email,
         password: '123',
-        companyName: 'TestCo'
+        companyName: 'Test Company'
       });
 
     expect(res.status).toBe(201);
-    userId = res.body.user.id;
+    expect(res.body.success).toBe(true);
+    expect(res.body.user).toHaveProperty('id');
+    expect(res.body.employerProfile).toHaveProperty('id');
+    expect(res.body.employerProfile.companyName).toBe('Test Company');
   });
 
-  it('Просмотр работодателей', async () => {
-    const create = await request(app)
+  it('Должен возвращать список всех работодателей', async () => {
+    const email = `emp_${Date.now()}@test.com`;
+
+    // Создаём одного работодателя
+    const createRes = await request(app)
       .post('/employers')
       .send({
-        email: `emp_${Date.now()}@test.com`,
+        email: email,
         password: '123',
-        companyName: 'TestCo'
+        companyName: 'Test Company'
       });
 
+    // Получаем список
     const res = await request(app).get('/employers');
 
     expect(res.status).toBe(200);
-    expect(res.body.employers.some(e => e.user.id === create.body.user.id)).toBe(true);
+    expect(Array.isArray(res.body.employers)).toBe(true);
+    expect(res.body.employers.length).toBeGreaterThan(0);
+
+    // Проверяем, что созданный работодатель присутствует в списке
+    const found = res.body.employers.some(e => 
+      e.user && e.user.email === email
+    );
+    expect(found).toBe(true);
   });
 
-  it('Удаление работодателя', async () => {
-    const create = await request(app)
+  it('Должен удалять работодателя', async () => {
+    const email = `emp_${Date.now()}@test.com`;
+
+    // Создаём работодателя
+    const createRes = await request(app)
       .post('/employers')
       .send({
-        email: `emp_${Date.now()}@test.com`,
+        email: email,
         password: '123',
-        companyName: 'TestCo'
+        companyName: 'Test Company'
       });
 
-    const res = await request(app).delete(`/employers/${create.body.user.id}`);
+    const userId = createRes.body.user.id;
+
+    // Удаляем
+    const res = await request(app).delete(`/employers/${userId}`);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);

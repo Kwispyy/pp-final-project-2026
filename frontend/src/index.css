@@ -1,4 +1,4 @@
-body {
+/* body {
   font-family: Arial;
   margin: 0;
 }
@@ -21,4 +21,180 @@ button {
   border: none;
   padding: 10px;
   border-radius: 5px;
+} */
+
+/* body {
+  background-color: #f8f9fa;
+}
+
+.navbar-brand {
+  font-weight: bold;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+}
+
+.card {
+  background: white;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+button {
+  padding: 10px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+}
+
+button:disabled {
+  background: gray;
+}
+
+.center {
+  text-align: center;
+  margin-top: 50px;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 10px;
+  }
+} */
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #802020;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h3, h4, h5 {
+  color: #333;
+  text-align: center;
+}
+
+.vacancy-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vacancy-card h4, .vacancy-card h5 {
+  margin: 0;
+  font-weight: 600;
+}
+
+.vacancy-card p {
+  margin: 0;
+  color: #555;
+}
+
+button {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 6px;
+  background-color: #007bff;
+  color: white;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 60px;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+  .container {
+    padding: 15px;
+  }
+
+  .vacancy-card {
+    padding: 12px;
+  }
+
+  button {
+    width: 100%;
+  }
+}
+
+/* Navbar мобильный */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+}
+
+.navbar .nav-links {
+  display: flex;
+  gap: 15px;
+}
+
+.navbar .nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.navbar .nav-toggle {
+  display: none;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .navbar .nav-links {
+    display: none;
+    flex-direction: column;
+    background-color: #007bff;
+    width: 100%;
+    position: absolute;
+    top: 50px;
+    left: 0;
+    padding: 10px 0;
+  }
+
+  .navbar .nav-links.show {
+    display: flex;
+  }
+
+  .navbar .nav-toggle {
+    display: block;
+  }
 }

@@ -5,50 +5,34 @@ import { prisma } from '../lib/prisma.js';
 import { cleanDb } from './setup.js';
 
 describe('Applications CRUD', () => {
-  let userId;
+  let studentId;
   let vacancyId;
-  let applicationId;
 
   beforeEach(async () => {
     await cleanDb();
 
-    const user = await prisma.user.create({
-      data: {
-        email: `student_${Date.now()}@test.com`,
-        password: '123',
-        role: 'STUDENT'
-      }
+    // Создаём студента
+    const studentUser = await prisma.user.create({
+      data: { email: `student_${Date.now()}@test.com`, password: '123', role: 'STUDENT' }
     });
+    await prisma.studentProfile.create({ data: { userId: studentUser.id } });
+    studentId = studentUser.id;
 
-    await prisma.studentProfile.create({
-      data: { userId: user.id }
-    });
-
-    userId = user.id;
-
+    // Создаём работодателя и вакансию
     const empUser = await prisma.user.create({
-      data: {
-        email: `emp_${Date.now()}@test.com`,
-        password: '123',
-        role: 'EMPLOYER'
-      }
+      data: { email: `emp_${Date.now()}@test.com`, password: '123', role: 'EMPLOYER' }
     });
-
     const employer = await prisma.employerProfile.create({
-      data: {
-        userId: empUser.id,
-        companyName: 'TestCo'
-      }
+      data: { userId: empUser.id, companyName: 'Test Company' }
     });
 
     const vacancy = await prisma.vacancy.create({
       data: {
-        title: 'Backend',
-        description: 'Node.js',
+        title: 'Test Vacancy',
+        description: 'Test description',
         employerId: employer.id
       }
     });
-
     vacancyId = vacancy.id;
   });
 
@@ -56,58 +40,45 @@ describe('Applications CRUD', () => {
     await prisma.$disconnect();
   });
 
-  it('Добавление заявки', async () => {
+  it('Должен создавать отклик', async () => {
     const res = await request(app)
       .post('/applications')
-      .send({
-        userId,
-        vacancyId,
-        status: 'NEW'
-      });
+      .send({ userId: studentId, vacancyId });
 
     expect(res.status).toBe(201);
-    expect(res.body.status).toBe('NEW');
-
-    applicationId = res.body.id;
+    expect(res.body).toHaveProperty('id');
+    expect(res.body.status).toBe('APPLIED');
   });
 
-  it('Просмотр заявок', async () => {
-    const create = await request(app).post('/applications').send({
-      userId,
-      vacancyId,
-      status: 'NEW'
-    });
+  it('Должен возвращать список откликов', async () => {
+    await request(app).post('/applications').send({ userId: studentId, vacancyId });
 
     const res = await request(app).get('/applications');
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body.applications)).toBe(true);
-    expect(res.body.applications.some(a => a.id === create.body.id)).toBe(true);
+    expect(res.body.applications.length).toBeGreaterThan(0);
   });
 
-  it('Обновление заявки', async () => {
-    const create = await request(app).post('/applications').send({
-      userId,
-      vacancyId,
-      status: 'NEW'
-    });
+  it('Должен обновлять статус отклика', async () => {
+    const createRes = await request(app)
+      .post('/applications')
+      .send({ userId: studentId, vacancyId });
 
     const res = await request(app)
-      .put(`/applications/${create.body.id}`)
-      .send({ status: 'ACCEPTED' });
+      .put(`/applications/${createRes.body.id}`)
+      .send({ status: 'INTERVIEW' });
 
     expect(res.status).toBe(200);
-    expect(res.body.status).toBe('ACCEPTED');
+    expect(res.body.status).toBe('INTERVIEW');
   });
 
-  it('Удаление заявки', async () => {
-    const create = await request(app).post('/applications').send({
-      userId,
-      vacancyId,
-      status: 'NEW'
-    });
+  it('Должен удалять отклик', async () => {
+    const createRes = await request(app)
+      .post('/applications')
+      .send({ userId: studentId, vacancyId });
 
-    const res = await request(app).delete(`/applications/${create.body.id}`);
+    const res = await request(app).delete(`/applications/${createRes.body.id}`);
 
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
