@@ -8,7 +8,6 @@ import Vacancies from "./pages/Vacancies.jsx";
 import Profile from "./pages/Profile.jsx";
 
 function App() {
-  // Загружаем пользователя из localStorage один раз при инициализации
   const [user, setUser] = useState(() => {
     const savedUser = localStorage.getItem("user");
     return savedUser ? JSON.parse(savedUser) : null;

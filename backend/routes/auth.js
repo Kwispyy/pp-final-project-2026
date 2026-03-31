@@ -3,7 +3,6 @@ import { prisma } from "../lib/prisma.js";
 
 const router = express.Router();
 
-// Регистрация
 router.post("/register", async (req, res) => {
   const { email, password, role, companyName } = req.body;
 
@@ -37,7 +36,6 @@ router.post("/register", async (req, res) => {
   }
 });
 
-// Логин (универсальный для студента и работодателя)
 router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 

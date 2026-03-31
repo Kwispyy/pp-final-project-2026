@@ -8,7 +8,6 @@ export default function Profile({ user }) {
   useEffect(() => {
     if (!user) return;
 
-    // Загружаем отклики студента
     axios.get("http://localhost:3000/applications")
       .then(res => {
         const myApps = res.data.applications?.filter(a => a.userId === user.id) || [];
@@ -16,7 +15,6 @@ export default function Profile({ user }) {
       })
       .catch(err => console.error("Ошибка загрузки откликов:", err));
 
-    // Загружаем вакансии работодателя
     if (user.role === "EMPLOYER") {
       axios.get("http://localhost:3000/vacancies")
         .then(res => {
@@ -27,7 +25,6 @@ export default function Profile({ user }) {
     }
   }, [user]);
 
-  // Отмена отклика (для студента)
   const cancelApplication = async (applicationId) => {
     if (!window.confirm("Отменить отклик на вакансию?")) return;
     try {
@@ -39,7 +36,6 @@ export default function Profile({ user }) {
     }
   };
 
-  // Удаление вакансии (для работодателя)
   const deleteVacancy = async (vacancyId) => {
     if (!window.confirm("Удалить вакансию? Все отклики на неё тоже будут удалены.")) return;
     try {
