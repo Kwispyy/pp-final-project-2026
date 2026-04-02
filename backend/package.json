@@ -6,12 +6,13 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "jest --runInBand",
-    "test:students": "jest tests/students.test.js --runInBand",
-    "test:employers": "jest tests/employers.test.js --runInBand",
-    "test:vacancies": "jest tests/vacancies.test.js --runInBand",
-    "test:applications": "jest tests/applications.test.js --runInBand",
-    "db:clean": "node -e \"import('./tests/setup.js').then(m => m.cleanDb().then(() => console.log('✅ База данных успешно очищена'))).catch(console.error);\""
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:errors": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/error-handling.test.js --runInBand",
+    "test:students": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/students.test.js --runInBand",
+    "test:employers": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/employers.test.js --runInBand",
+    "test:vacancies": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/vacancies.test.js --runInBand",
+    "test:applications": "node --experimental-vm-modules node_modules/jest/bin/jest.js tests/applications.test.js --runInBand",
+    "db:clean": "node -e \"import('./tests/setup.js').then(m => m.cleanDb().then(() => console.log('База данных успешно очищена'))).catch(console.error);\""
   },
   "keywords": [],
   "author": "",
@@ -30,6 +31,7 @@
   },
   "devDependencies": {
     "jest": "^30.3.0",
+    "jest-environment-node": "^30.3.0",
     "nodemon": "^3.1.14",
     "prisma": "^7.6.0",
     "supertest": "^7.2.2"

@@ -6,6 +6,21 @@ const router = express.Router();
 router.post("/register", async (req, res) => {
   const { email, password, role, companyName } = req.body;
 
+  // Добавляем валидацию
+  if (!email || !password || !role) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "Email, password и role обязательны" 
+    });
+  }
+
+  if (!['STUDENT', 'EMPLOYER'].includes(role)) {
+    return res.status(400).json({ 
+      success: false, 
+      error: "Role должен быть STUDENT или EMPLOYER" 
+    });
+  }
+
   try {
     const exists = await prisma.user.findUnique({ where: { email } });
     if (exists) {
@@ -32,7 +47,7 @@ router.post("/register", async (req, res) => {
     res.json({ success: true, user: fullUser });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, error: err.message });
+    res.status(500).json({ success: false, error: "Внутренняя ошибка сервера" });
   }
 });
 

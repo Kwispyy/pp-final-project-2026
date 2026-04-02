@@ -43,7 +43,6 @@ describe('Students CRUD', () => {
     expect(Array.isArray(res.body.students)).toBe(true);
     expect(res.body.students.length).toBeGreaterThan(0);
 
-    // Проверяем, что студент появился в списке
     const found = res.body.students.some(s => 
       s.user && s.user.email === email
     );
